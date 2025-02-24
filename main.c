@@ -2,85 +2,98 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-char* str;
+#define MAX_STACK 100
 
-void remove_spaces(char* s) {
-    char* d = s;
-    do {
-        while (*d == ' ') {
-            ++d;
+typedef struct {
+    int data[MAX_STACK];
+    int top;
+} Stack;
+
+void push(Stack *s, int value) {
+    if (s->top < MAX_STACK - 1) {
+        s->data[++s->top] = value;
+    }
+}
+
+int pop(Stack *s) {
+    return (s->top >= 0) ? s->data[s->top--] : 0;
+}
+
+int peek(Stack *s) {
+    return (s->top >= 0) ? s->data[s->top] : 0;
+}
+
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+int apply_op(int a, int b, char op) {
+    switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return a / b;
+    }
+    return 0;
+}
+
+int eval_expression(const char *expr) {
+    Stack values;
+    Stack operators;
+
+    values.top = -1;
+    operators.top = -1;
+
+    while (*expr) {
+        if (isspace(*expr)) {
+            expr++;
+            continue;
         }
-    } while ((*s++ = *d++));
-}
-
-int calc_number() {
-    int num = 0;
-    while (isdigit(*str)) {
-        num = num * 10 + (*str - '0');
-        str++;
-    }
-    return num;
-}
-
-int calc_expression();
-
-int calc_mult_div() {
-    int num = calc_expression(); // Получаем первое число или результат выражения в скобках
-
-    while (*str == '*' || *str == '/') {
-        char op = *str;
-        str++;
-        int next_num = calc_expression();
-        if (op == '*') {
-            num *= next_num;
-        } else if (op == '/') {
-            num /= next_num;
+        if (isdigit(*expr)) {
+            int value = strtol(expr, (char **)&expr, 10);
+            push(&values, value);
+            continue;
         }
-    }
-
-    return num;
-}
-
-int calc_add_sub() {
-    int res = calc_mult_div();
-
-    while (*str == '+' || *str == '-') {
-        char op = *str;
-        str++;
-        int next_num = calc_mult_div();
-        if (op == '+') {
-            res += next_num;
-        } else if (op == '-') {
-            res -= next_num;
+        if (*expr == '(') {
+            push(&operators, *expr);
+        } else if (*expr == ')') {
+            while (operators.top >= 0 && peek(&operators) != '(') {
+                int b = pop(&values);
+                int a = pop(&values);
+                char op = (char)pop(&operators);
+                push(&values, apply_op(a, b, op));
+            }
+            pop(&operators);
+        } else {
+            while (operators.top >= 0 && precedence(peek(&operators)) >= precedence(*expr)) {
+                int b = pop(&values);
+                int a = pop(&values);
+                char op = (char)pop(&operators);
+                push(&values, apply_op(a, b, op));
+            }
+            push(&operators, *expr);
         }
+        expr++;
     }
 
-    return res;
-}
-
-int calc_expression() {
-    int res = 0;
-
-    if (*str == '(') {
-        str++;
-        res = calc_add_sub();
-        str++;
-    } else {
-        res = calc_number();
+    while (operators.top >= 0) {
+        int b = pop(&values);
+        int a = pop(&values);
+        char op = (char)pop(&operators);
+        push(&values, apply_op(a, b, op));
     }
 
-    return res;
+    return pop(&values);
 }
 
 int main() {
-    char s[100];
-    fgets(s, sizeof(s), stdin);
+    char expr[256];
+    fgets(expr, sizeof(expr), stdin);
 
-    remove_spaces(s);
-    str = s;
-
-    int result = calc_add_sub();
-    printf("%d", result);
+    int result = eval_expression(expr);
+    printf("%d\n", result);
 
     return 0;
 }
