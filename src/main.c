@@ -1,8 +1,8 @@
+#include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <limits.h>
 
 #define MAX_STACK 100
 #define MAX_INPUT 1024
@@ -15,47 +15,61 @@ typedef struct {
     int top;
 } Stack;
 
-void push(Stack *s, double value) {
+void push(Stack* s, double value)
+{
     if (s->top < MAX_STACK - 1) {
         s->data[++s->top] = value;
     }
 }
 
-double pop(Stack *s) {
+double pop(Stack* s)
+{
     return (s->top >= 0) ? s->data[s->top--] : 0;
 }
 
-double peek(Stack *s) {
+double peek(Stack* s)
+{
     return (s->top >= 0) ? s->data[s->top] : 0;
 }
 
-int precedence(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
+int precedence(char op)
+{
+    if (op == '+' || op == '-')
+        return 1;
+    if (op == '*' || op == '/')
+        return 2;
     return 0;
 }
 
-double apply_op(double a, double b, char op, int is_float_mode) {
+double apply_op(double a, double b, char op, int is_float_mode)
+{
     if (op == '/' && (b > -FLOAT_PRECISION && b < FLOAT_PRECISION)) {
         fprintf(stderr, "Division by small number\n");
         exit(1);
     }
     double result;
     switch (op) {
-        case '+': result = a + b; break;
-        case '-': result = a - b; break;
-        case '*': result = a * b; break;
-        case '/':
-            if (is_float_mode) {
-                result = a / b;
-            } else {
-                result = (a / b);
-                if (result < 0 && ((long long)a % (long long)b) != 0) {
-                    result -= 1;
-                }
+    case '+':
+        result = a + b;
+        break;
+    case '-':
+        result = a - b;
+        break;
+    case '*':
+        result = a * b;
+        break;
+    case '/':
+        if (is_float_mode) {
+            result = a / b;
+        } else {
+            result = (a / b);
+            if (result < 0 && ((long long)a % (long long)b) != 0) {
+                result -= 1;
             }
-            break;
-        default: return 0;
+        }
+        break;
+    default:
+        return 0;
     }
     if (!is_float_mode && (result < MIN_NUMBER || result > MAX_NUMBER)) {
         fprintf(stderr, "Intermediate result is out of range\n");
@@ -64,11 +78,13 @@ double apply_op(double a, double b, char op, int is_float_mode) {
     return result;
 }
 
-int is_valid_char(char c) {
+int is_valid_char(char c)
+{
     return isdigit(c) || c == '(' || c == ')' || c == '*' || c == '+' || c == '/' || c == '-' || c == '.' || isspace(c);
 }
 
-double eval_expression(const char *expr, int is_float_mode) {
+double eval_expression(const char* expr, int is_float_mode)
+{
     Stack values = { .top = -1 };
     Stack operators = { .top = -1 };
     int last_was_operator = 1;
@@ -84,7 +100,7 @@ double eval_expression(const char *expr, int is_float_mode) {
             continue;
         }
         if (isdigit(*expr) || *expr == '.') {
-            char *endptr;
+            char* endptr;
             double value = strtod(expr, &endptr);
             if (!is_float_mode && (value < 0 || value > MAX_NUMBER)) {
                 fprintf(stderr, "Number is out of range [0 - 2*10^9]\n");
@@ -142,7 +158,8 @@ double eval_expression(const char *expr, int is_float_mode) {
     return pop(&values);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
     int is_float_mode = 0;
     if (argc > 1 && strcmp(argv[1], "--float") == 0) {
         is_float_mode = 1;
