@@ -47,10 +47,7 @@ double apply_op(double a, double b, char op, int is_float_mode)
         if (is_float_mode) {
             result = a / b;
         } else {
-            result = (a / b);
-            if (result < 0 && ((long long)a % (long long)b) != 0) {
-                result -= 1;
-            }
+            result = (long long)(a / b); // Округление к 0
         }
         break;
     default:
