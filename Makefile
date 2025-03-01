@@ -1,10 +1,10 @@
-CC = gcc
 CXX = g++
+CC = gcc
 
 CFLAGS = -Wall -Wextra -Wpedantic -Werror -std=c11
-CXXFLAGS = -Wall -Wextra -Wpedantic -Werror -std=c++17
+CXXFLAGS = -Wall -Wextra -Wpedantic -Werror -std=c++17 -Igoogletest/googletest/include
 LDFLAGS = -lstdc++ -lm
-TEST_LDFLAGS = -lgtest -lgtest_main -lpthread
+TEST_LDFLAGS = -lpthread
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -23,7 +23,7 @@ TEST_EXE = $(BUILD_DIR)/unit-tests.exe
 # GoogleTest files
 GTEST_DIR = googletest
 GTEST_BUILD = $(GTEST_DIR)/build
-GTEST_LIB = $(GTEST_BUILD)/lib/libgtest.a
+GTEST_LIB = $(GTEST_BUILD)/lib/libgtest.a $(GTEST_BUILD)/lib/libgtest_main.a
 
 # Formatting configuration
 FORMAT_DIRS = $(SRC_DIR) $(UNIT_TESTS_DIR)
@@ -32,7 +32,7 @@ CLANG_FORMAT = clang-format
 
 .PHONY: all clean run-app run-unit-test format
 
-all: $(TEST_EXE)
+all: $(APP_EXE) $(TEST_EXE)
 
 # Build application
 $(APP_EXE): $(APP_OBJ)
@@ -58,7 +58,7 @@ $(GTEST_LIB): $(GTEST_DIR)/CMakeLists.txt
 # Build unit tests
 $(TEST_EXE): $(TEST_OBJ) $(GTEST_LIB)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(TEST_LDFLAGS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJ) $(GTEST_LIB) $(TEST_LDFLAGS) $(LDFLAGS)
 
 $(BUILD_DIR)/tests.o: $(UNIT_TESTS_DIR)/tests.cpp
 	@mkdir -p $(BUILD_DIR)

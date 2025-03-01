@@ -69,7 +69,7 @@ double eval_expression(const char* expr, int is_float_mode)
 {
     Stack values = { .top = -1 };
     Stack operators = { .top = -1 };
-    int last_was_operator = 1;
+    int last_was_operator = 1; // 1, если последний символ был оператором/скобкой
     int open_parentheses = 0;
 
     while (*expr) {
@@ -81,11 +81,19 @@ double eval_expression(const char* expr, int is_float_mode)
             expr++;
             continue;
         }
-        if (isdigit(*expr) || *expr == '.') {
+
+        // Обработка унарного минуса (отрицательных чисел)
+        if (*expr == '-' && (last_was_operator || open_parentheses > 0)) {
+            // Читаем отрицательное число
+            expr++;
+            if (!isdigit(*expr) && *expr != '.') {
+                fprintf(stderr, "Incomplete expression\n");
+                exit(1);
+            }
             char* endptr;
-            double value = strtod(expr, &endptr);
-            if (!is_float_mode && (value < 0 || value > MAX_NUMBER)) {
-                fprintf(stderr, "Number is out of range [0 - 2*10^9]\n");
+            double value = strtod(expr - 1, &endptr); // Включаем '-' в число
+            if (!is_float_mode && (value < MIN_NUMBER || value > MAX_NUMBER)) {
+                fprintf(stderr, "Number is out of range [%d - %d]\n", MIN_NUMBER, MAX_NUMBER);
                 exit(1);
             }
             push(&values, value);
@@ -93,6 +101,20 @@ double eval_expression(const char* expr, int is_float_mode)
             last_was_operator = 0;
             continue;
         }
+
+        if (isdigit(*expr) || *expr == '.') {
+            char* endptr;
+            double value = strtod(expr, &endptr);
+            if (!is_float_mode && (value < MIN_NUMBER || value > MAX_NUMBER)) {
+                fprintf(stderr, "Number is out of range [%d - %d]\n", MIN_NUMBER, MAX_NUMBER);
+                exit(1);
+            }
+            push(&values, value);
+            expr = endptr;
+            last_was_operator = 0;
+            continue;
+        }
+
         if (*expr == '(') {
             push(&operators, *expr);
             open_parentheses++;
@@ -127,15 +149,18 @@ double eval_expression(const char* expr, int is_float_mode)
         }
         expr++;
     }
+
     if (last_was_operator || open_parentheses > 0) {
         fprintf(stderr, "Incomplete expression\n");
         exit(1);
     }
+
     while (operators.top >= 0) {
         double b = pop(&values);
         double a = pop(&values);
         char op = (char)pop(&operators);
         push(&values, apply_op(a, b, op, is_float_mode));
     }
+
     return pop(&values);
 }
