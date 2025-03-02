@@ -30,6 +30,14 @@ FORMAT_DIRS = $(SRC_DIR) $(UNIT_TESTS_DIR)
 FORMAT_EXTS = *.cpp *.c *.h
 CLANG_FORMAT = clang-format
 
+# Integration tests
+VENV = env
+PYTHON = $(VENV)/bin/python
+PIP = $(VENV)/bin/pip
+PYTEST = $(VENV)/bin/pytest  # Путь к pytest внутри venv
+INT_TEST_DIR = tests/integration
+INT_TESTS = $(INT_TEST_DIR)/tests.py
+
 .PHONY: all clean run-app run-unit-test format
 
 all: $(APP_EXE) $(TEST_EXE)
@@ -75,6 +83,14 @@ run-float: $(APP_EXE)
 
 run-unit-test: $(TEST_EXE)
 	@$<
+
+venv:
+	@python3 -m venv $(VENV)
+	@$(PIP) install --upgrade pip
+	@$(PIP) list | grep -q pytest || $(PIP) install pytest
+
+run-integration-tests: $(VENV) $(APP_EXE)
+	@$(PYTEST) $(INT_TESTS)
 
 format:
 	@find $(FORMAT_DIRS) -type f \( \

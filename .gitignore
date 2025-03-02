@@ -5,3 +5,6 @@
 
 googletest/
 build/
+env/
+.pytest_cache/
+__pychache__/
