@@ -53,10 +53,13 @@ double apply_op(double a, double b, char op, int is_float_mode)
     default:
         return 0;
     }
-    if (!is_float_mode && (result < MIN_NUMBER || result > MAX_NUMBER)) {
+
+    // Проверка на переполнение в обоих режимах
+    if (result < MIN_NUMBER || result > MAX_NUMBER) {
         fprintf(stderr, "Intermediate result is out of range\n");
         exit(1);
     }
+
     return result;
 }
 
