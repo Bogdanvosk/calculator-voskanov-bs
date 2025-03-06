@@ -65,7 +65,8 @@ int is_valid_char(char c)
     return isdigit(c) || c == '(' || c == ')' || c == '*' || c == '+' || c == '/' || c == '-' || c == '.' || isspace(c);
 }
 
-double eval_expression(const char* expr, int is_float_mode) {
+double eval_expression(const char* expr, int is_float_mode)
+{
     Stack values = { .top = -1 };
     Stack operators = { .top = -1 };
     int last_was_operator = 1;
@@ -128,8 +129,7 @@ double eval_expression(const char* expr, int is_float_mode) {
                 fprintf(stderr, "Incomplete expression\n");
                 exit(1);
             }
-            while (operators.top >= 0 && peek(&operators) != '(' &&
-                   precedence(peek(&operators)) >= precedence(*expr)) {
+            while (operators.top >= 0 && peek(&operators) != '(' && precedence(peek(&operators)) >= precedence(*expr)) {
                 if (values.top < 1) {
                     fprintf(stderr, "Incomplete expression\n");
                     exit(1);
