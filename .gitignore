@@ -1,10 +1,10 @@
-# Executables
 *.exe
 *.out
 *.app
+*.o
 
 googletest/
 build/
 env/
 .pytest_cache/
-__pychache__/
+tests/integration/__pycache__/
